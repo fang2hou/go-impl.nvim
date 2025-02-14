@@ -40,9 +40,8 @@ function M.get_interface(co)
 			picker:close()
 			coroutine.resume(co, item)
 		end,
-		lsp_result_transform = function(result, item)
-			item.containerName = result.containerName
-			return item
+		transform = function(item)
+			item.containerName = item.item.containerName
 		end,
 	})
 
