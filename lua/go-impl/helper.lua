@@ -47,67 +47,39 @@ end
 function M.get_struct_at_cursor()
 	local node = ts_utils.get_node_at_cursor()
 
-	while node and node:type() ~= "type_declaration" do
+	while node and node:type() ~= "type_spec" do
 		node = node:parent()
 	end
-
 	if not node then
 		return
 	end
 
-	for child, _ in node:iter_children() do
-		-- Tree-sitter node structure:
-		-- (type_declaration
-		--   (type_spec
-		--   name: (type_identifier)
-		--   type: (struct_type
-		--       (field_declaration_list
-		--       (field_declaration
-		--       ...
-
-		if child:type() == "type_spec" then
-			---@type table<string, TSNode>
-			local nodes = {}
-
-			for grandchild, field in child:iter_children() do
-				nodes[field] = grandchild
-			end
-
-			if not nodes["type"] or not nodes["name"] then
-				return
-			end
-
-			if nodes["type"]:type() ~= "struct_type" then
-				return
-			end
-
-			local node_text = vim.treesitter.get_node_text(nodes["name"], 0)
-			if not node_text then
-				return
-			end
-
-			return node_text
-		end
-	end
-end
-
----Predict the abbreviation for the current struct
----@param struct_name? string The Go struct name
----@return string abbreviation The predicted abbreviation
-function M.predict_abbreviation(struct_name)
-	if not struct_name then
-		return ""
+	-- Tree-sitter node structure:
+	-- (type_declaration
+	--   (type_spec
+	--   name: (type_identifier)
+	--   type: (struct_type
+	--       (field_declaration_list
+	--       (field_declaration
+	--       ...
+	---@type table<string, TSNode>
+	local nodes = {}
+	for child, field in node:iter_children() do
+		nodes[field] = child
 	end
 
-	local abbreviation = ""
-	abbreviation = abbreviation .. string.sub(struct_name, 1, 1)
-	for i = 2, #struct_name do
-		local char = string.sub(struct_name, i, i)
-		if char == string.upper(char) and char ~= string.lower(char) then
-			abbreviation = abbreviation .. char
-		end
+	if not nodes["type"] or not nodes["name"] then
+		return
 	end
-	return string.lower(abbreviation) .. " *" .. struct_name
+	if nodes["type"]:type() ~= "struct_type" then
+		return
+	end
+
+	local node_text = vim.treesitter.get_node_text(nodes["name"], 0)
+	if not node_text then
+		return
+	end
+	return node_text
 end
 
 ---Check the validity of the go receiver string, and return the last line number of the struct
