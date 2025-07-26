@@ -7,6 +7,26 @@ M.options = {
 	---@usage "snacks" - Use folke/snacks picker
 	---@usage "fzf_lua" - Use ibhagwan/fzf-lua
 	picker = nil,
+	receiver = {
+		---Predict the abbreviation for the current struct
+		---@param struct_name? string The Go struct name
+		---@return string abbreviation The predicted abbreviation
+		predict_abbreviation = function(struct_name)
+			if not struct_name then
+				return ""
+			end
+
+			local abbreviation = ""
+			abbreviation = abbreviation .. string.sub(struct_name, 1, 1)
+			for i = 2, #struct_name do
+				local char = string.sub(struct_name, i, i)
+				if char == string.upper(char) and char ~= string.lower(char) then
+					abbreviation = abbreviation .. char
+				end
+			end
+			return string.lower(abbreviation) .. " *" .. struct_name
+		end,
+	},
 	insert = {
 		---@type "after"|"before"|"end"
 		---@usage "after" - insert after the receiver's struct declaration

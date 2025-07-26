@@ -19,7 +19,8 @@ function M.open()
 
 		-- Receiver
 		local current_struct_name = helper.get_struct_at_cursor()
-		local default_value = current_struct_name and helper.predict_abbreviation(current_struct_name) or ""
+		local default_value = current_struct_name and config.options.receiver.predict_abbreviation(current_struct_name)
+			or ""
 		ui.get_receiver(default_value, function(recevier)
 			coroutine.resume(co, recevier)
 		end)
