@@ -1,5 +1,3 @@
-local ts_utils = require("nvim-treesitter.ts_utils")
-local parsers = require("nvim-treesitter.parsers")
 local job = require("plenary.job")
 
 local config = require("go-impl.config")
@@ -34,6 +32,31 @@ local ts_query_interface = vim.treesitter.query.parse(
     ]]
 )
 
+---Get the root node for the given position
+---@param line number The line number (0-based)
+---@param col number The column number (0-based)
+---@param root_lang_tree vim.treesitter.LanguageTree The root language tree
+---@return TSNode? root The root node for the given position
+---@return TSTree? tree The tree in which the root node resides
+---@return vim.treesitter.LanguageTree lang_tree The language tree for the range
+function M.get_root_for_position(line, col, root_lang_tree)
+	local lang_tree = root_lang_tree:language_for_range({ line, col, line, col })
+
+	while true do
+		for _, tree in pairs(lang_tree:trees()) do
+			local root = tree:root()
+
+			if root and vim.treesitter.is_in_node_range(root, line, col) then
+				return root, tree, lang_tree
+			end
+		end
+
+		if lang_tree == root_lang_tree then
+			break
+		end
+	end
+end
+
 ---Get the gopls client for the current buffer
 ---@param bufnr integer The buffer number
 ---@return vim.lsp.Client? client The gopls client
@@ -45,7 +68,20 @@ end
 ---Try to get the current struct name under the cursor
 ---@return string? struct_name The struct name
 function M.get_struct_at_cursor()
-	local node = ts_utils.get_node_at_cursor()
+	local cursor = vim.api.nvim_win_get_cursor(0)
+	local cursor_range = { cursor[1] - 1, cursor[2] }
+	local buf = vim.api.nvim_win_get_buf(0)
+	local root_lang_tree = vim.treesitter.get_parser(buf)
+	if not root_lang_tree then
+		return
+	end
+
+	local root = M.get_root_for_position(cursor_range[1], cursor_range[2], root_lang_tree)
+	if not root then
+		return
+	end
+
+	local node = root:named_descendant_for_range(cursor_range[1], cursor_range[2], cursor_range[1], cursor_range[2])
 
 	while node and node:type() ~= "type_spec" do
 		node = node:parent()
@@ -54,7 +90,7 @@ function M.get_struct_at_cursor()
 		return
 	end
 
-	-- Tree-sitter node structure:
+	-- Treesitter node structure:
 	-- (type_declaration
 	--   (type_spec
 	--   name: (type_identifier)
@@ -95,7 +131,7 @@ function M.get_lnum(receiver)
 		return
 	end
 
-	local root_lang_tree = parsers.get_parser(0)
+	local root_lang_tree = vim.treesitter.get_parser(0)
 	if not root_lang_tree then
 		return
 	end
@@ -156,13 +192,13 @@ function M.parse_interface(path, line, col)
 
 	vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
 
-	local root_lang_tree = parsers.get_parser(buf)
+	local root_lang_tree = vim.treesitter.get_parser(buf)
 	if not root_lang_tree then
 		return
 	end
 	root_lang_tree:parse()
 
-	local root = ts_utils.get_root_for_position(line, col, root_lang_tree)
+	local root = M.get_root_for_position(line, col, root_lang_tree)
 	if not root then
 		return
 	end
