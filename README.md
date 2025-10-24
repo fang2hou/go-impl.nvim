@@ -28,7 +28,7 @@
 
 ## 📋 Requirements
 
-- Neovim >= 0.10.0
+- Neovim >= 0.11.0
 - Latest version of [josharian/impl][impl]
   - Install with `go install github.com/josharian/impl@latest`
 - Fuzzy Finder (choose one of the following)
