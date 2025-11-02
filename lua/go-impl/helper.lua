@@ -256,11 +256,13 @@ end
 ---@param lnum integer The line number to add the implementation
 function M.impl(receiver, package, interface_name, lnum)
 	local lines = {}
+	local cur_buf_path = vim.fn.expand("%:p:h")
 	local job_config = {
 		command = "impl",
+		cwd = cur_buf_path,
 		args = {
 			"-dir",
-			vim.fn.fnameescape(vim.fn.expand("%:p:h")),
+			vim.fn.fnameescape(cur_buf_path),
 			receiver,
 			package .. "." .. interface_name,
 		},
@@ -269,7 +271,9 @@ function M.impl(receiver, package, interface_name, lnum)
 		end,
 		on_exit = function(_, code)
 			if code ~= 0 then
-				vim.notify("Failed to add the implementation", vim.log.levels.ERROR, { title = "go-impl" })
+				vim.schedule(function()
+					vim.notify("Failed to add the implementation", vim.log.levels.ERROR, { title = "go-impl" })
+				end)
 				return
 			end
 
