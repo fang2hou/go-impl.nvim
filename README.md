@@ -46,7 +46,6 @@
   ft = "go",
   dependencies = {
     "MunifTanjim/nui.nvim",
-    "nvim-lua/plenary.nvim",
 
     -- Choose one of the following fuzzy finder
     "folke/snacks.nvim",

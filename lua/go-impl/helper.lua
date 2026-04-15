@@ -1,5 +1,3 @@
-local job = require("plenary.job")
-
 local config = require("go-impl.config")
 
 local M = {}
@@ -255,53 +253,46 @@ end
 ---@param interface_name string The interface name
 ---@param lnum integer The line number to add the implementation
 function M.impl(receiver, package, interface_name, lnum)
-	local lines = {}
 	local cur_buf_path = vim.fn.expand("%:p:h")
-	local job_config = {
-		command = "impl",
-		cwd = cur_buf_path,
-		args = {
-			"-dir",
-			vim.fn.fnameescape(cur_buf_path),
-			receiver,
-			package .. "." .. interface_name,
-		},
-		on_stdout = function(_, data)
-			table.insert(lines, data)
-		end,
-		on_exit = function(_, code)
-			if code ~= 0 then
-				vim.schedule(function()
-					vim.notify("Failed to add the implementation", vim.log.levels.ERROR, { title = "go-impl" })
-				end)
-				return
+
+	vim.system({
+		"impl",
+		"-dir",
+		vim.fn.fnameescape(cur_buf_path),
+		receiver,
+		package .. "." .. interface_name,
+	}, { cwd = cur_buf_path, text = true }, function(obj)
+		if obj.code ~= 0 then
+			vim.schedule(function()
+				vim.notify("Failed to add the implementation", vim.log.levels.ERROR, { title = "go-impl" })
+			end)
+			return
+		end
+
+		vim.schedule(function()
+			local lines = vim.split(obj.stdout or "", "\n")
+
+			-- before newline
+			while #lines > 0 and lines[1] == "" do
+				table.remove(lines, 1)
 			end
 
-			vim.schedule(function()
-				-- before newline
-				while #lines > 0 and lines[1] == "" do
-					table.remove(lines, 1)
-				end
+			if config.options.insert.before_newline then
+				table.insert(lines, 1, "")
+			end
 
-				if config.options.insert.before_newline then
-					table.insert(lines, 1, "")
-				end
+			-- after newline
+			while #lines > 0 and lines[#lines] == "" do
+				table.remove(lines, #lines)
+			end
 
-				-- after newline
-				while #lines > 0 and lines[#lines] == "" do
-					table.remove(lines, #lines)
-				end
+			if config.options.insert.after_newline then
+				table.insert(lines, "")
+			end
 
-				if config.options.insert.after_newline then
-					table.insert(lines, "")
-				end
-
-				vim.fn.append(lnum, lines)
-			end)
-		end,
-	}
-
-	job:new(job_config):start()
+			vim.fn.append(lnum, lines)
+		end)
+	end)
 end
 
 return M
