@@ -169,6 +169,11 @@ end
 ---@param gopls vim.lsp.Client The gopls client
 function M.try_get_interface(finder, co, bufnr, gopls)
 	if not finder or not fuzzy_finders[finder] then
+		vim.notify(
+			string.format("Invalid picker '%s', available: snacks, fzf_lua (nil for auto-detect)", finder),
+			vim.log.levels.WARN,
+			{ title = "go-impl" }
+		)
 		return nil
 	end
 
