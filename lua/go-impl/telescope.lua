@@ -94,9 +94,8 @@ end
 
 ---@param co thread
 ---@param bufnr integer
----@param gopls vim.lsp.Client
----@return InterfaceData
-function M.get_interface(co, bufnr, gopls)
+---@return InterfaceData?
+function M.get_interface(co, bufnr)
 	M.pickers
 		.new({}, {
 			prompt_title = "Go Interface Symbols",
