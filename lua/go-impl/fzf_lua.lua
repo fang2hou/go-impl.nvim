@@ -15,10 +15,11 @@ function M.env()
 end
 
 ---Convert the gopls result to a line
----@param item any gopls result
+---@param item vim.quickfix.entry
+---@param package_name string the package name of the interface
 ---@param query string the query string
 ---@return string? line the line to be displayed in the fzf window
-local function to_line(item, query)
+local function to_line(item, package_name, query)
 	-- Query highlight
 	if config.options.style.interface_selector.query_highlight then
 		local sym, text = item.text:match("^(.+%])(.*)$")
@@ -45,7 +46,7 @@ local function to_line(item, query)
 	end
 
 	-- Package
-	local package_info = string.format("(%s)", item.package)
+	local package_info = string.format("(%s)", package_name)
 	if config.options.style.interface_selector.package_highlight then
 		local styled = M.utils.ansi_from_hl(config.options.style.interface_selector.package_highlight_hl, package_info)
 		if styled then
@@ -80,13 +81,13 @@ local function fzf_lua_settings(bufnr, gopls)
 	---@type integer?
 	local running_request_id = nil
 
-	---@type fun(query: string): function
+	---@type fun(query: string[]): function
 	local contents = function(query)
 		---@param fzf_cb fun(line?: string, cb?: fun())
 		return function(fzf_cb)
 			-- Cancel the previous request
 			if gopls and running_request_id then
-				gopls.cancel_request(running_request_id)
+				gopls:cancel_request(running_request_id)
 			end
 
 			-- If gopls is not found, return an error
@@ -96,12 +97,17 @@ local function fzf_lua_settings(bufnr, gopls)
 
 			coroutine.wrap(function()
 				local co = coroutine.running()
-				local request_success, request_id = gopls.request("workspace/symbol", {
-					query = query,
+				local request_success, request_id = gopls:request("workspace/symbol", {
+					query = query[1],
 				}, function(err, result)
 					running_request_id = nil
-					if err or not result or type(result) ~= "table" then
+
+					if err then
 						return fzf_cb("Failed to fetch workspace symbols")
+					end
+
+					if not result or type(result) ~= "table" then
+						result = {}
 					end
 
 					local interface_symbols = vim.iter(result)
@@ -110,14 +116,15 @@ local function fzf_lua_settings(bufnr, gopls)
 						end)
 						:totable()
 
-					local items = vim.lsp.util.symbols_to_items(interface_symbols, bufnr)
+					local items = vim.lsp.util.symbols_to_items(interface_symbols, bufnr, gopls.offset_encoding)
 
-					-- Add the package name to the items
-					for i, item in ipairs(items) do
-						item.package = interface_symbols[i].containerName
-					end
+					local packages = vim.iter(interface_symbols)
+						:map(function(symbol)
+							return symbol.containerName
+						end)
+						:totable()
 
-					coroutine.resume(co, items)
+					coroutine.resume(co, items, packages)
 				end, bufnr)
 
 				if not request_success then
@@ -126,8 +133,10 @@ local function fzf_lua_settings(bufnr, gopls)
 
 				running_request_id = request_id
 
-				for _, item in ipairs(coroutine.yield()) do
-					fzf_cb(to_line(item, query))
+				local items, packages = coroutine.yield()
+
+				for i, item in ipairs(items) do
+					fzf_cb(to_line(item, packages[i] or "", query[1]))
 				end
 
 				fzf_cb()
