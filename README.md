@@ -5,38 +5,39 @@
 
 # go-impl.nvim
 
-🚀 A faster way to implement Go interfaces in Neovim.
+A fast and minimal Go interface implementation plugin powered by Neovim's built-in LSP client and Treesitter.
 
 [sample-video]
 
 </div>
 
-## 🌟 Key Features
+## ✨ Features
 
-- **Fully Asynchronous**:
-  Non-blocking operations for a seamless experience.
-- **Smart Receiver Detection**:
-  Automatically identifies the correct receiver based on cursor position.
-- **Treesitter Validation**:
-  Ensures the receiver is valid before executing `impl`.
-- **Fast Interface Selection**:
-  Uses [snacks][snacks-url] picker or [ibhagwan/fzf-lua][fzf-lua-url] for quick
-  and efficient interface selection.
-- **Generic Parameters Support**:
-  Allows specifying types for generic parameters with highlighting and interface
-  declaration.
+- **Built on Neovim primitives**  
+  Leverages the native LSP client (`vim.lsp`), Treesitter, and `vim.system()` for async subprocess management.
+  No heavy dependencies.
+- **Fully Asynchronous**  
+  Non-blocking LSP requests, interface selection, and `impl` execution for a seamless experience.
+- **Smart Receiver Detection**  
+  Uses Treesitter to locate the struct under the cursor and predict a sensible receiver abbreviation.
+- **Multi-Picker Support**  
+  Works with [snacks.nvim][snacks-url] (recommended, bundled with [LazyVim][LazyVim]),
+  [fzf-lua][fzf-lua-url], or [telescope.nvim][telescope-url]. Auto-detected based on availability.
+- **Generic Parameters Support**  
+  Interactive input for each type parameter with highlighting and live preview
+  of the interface declaration.
 
-## 📋 Requirements
+## 📦 Requirements
 
 - Neovim >= 0.12.0
-- Latest version of [josharian/impl][impl]
-  - Install with `go install github.com/josharian/impl@latest`
-- Fuzzy Finder (choose one of the following)
+- [josharian/impl][impl] (`go install github.com/josharian/impl@latest`)
+- [MunifTanjim/nui.nvim][nui-url]
+- A fuzzy finder (choose one):
   - [folke/snacks.nvim][snacks-url] (recommended, bundled with [LazyVim][LazyVim])
   - [ibhagwan/fzf-lua][fzf-lua-url]
   - [nvim-telescope/telescope.nvim][telescope-url]
 
-## 🚚 Installation
+## 💿 Installation
 
 <details>
 <summary>Install with <a href="https://github.com/folke/lazy.nvim">lazy.nvim</a></summary>
@@ -71,35 +72,41 @@
 
 ## 🚀 Usage
 
-1. Open a Go file.
-2. Place your cursor on the structure you want to implement.
-3. Run `:lua require("go-impl").open()` or `:GoImplOpen` to start implementing.
+1. Open a Go file and place the cursor on a struct.
+2. Run `:GoImplOpen` or `:lua require("go-impl").open()`.
+3. Confirm the receiver, pick an interface, fill in any generic type parameters.
 
 ## ⚙️ Configuration
 
-The default configuration should work for most users.
+The defaults work out of the box. See [config.lua](lua/go-impl/config.lua) for all options.
 
-Check out all available options in [config.lua](lua/go-impl/config.lua).
+```lua
+require("go-impl").setup({
+  -- explicitly pick a picker, or leave nil for auto-detection
+  picker = nil, -- "snacks" | "fzf_lua" | "telescope"
+  insert = {
+    position = "after", -- "after" | "before" | "end"
+    before_newline = true,
+    after_newline = false,
+  },
+})
+```
 
-## 🔄 Alternatives and Related Projects
+## 🔗 Alternatives
 
-- [edolphin-ydf/goimpl.nvim][goimpl.nvim] -
-  Partial support for generic interfaces and telescope search.
-  - This project is inspired by goimpl.nvim.
-- [olexsmir/gopher.nvim][gopher.nvim] -
-  Supports non-generic interfaces but requires manual input for arguments.
-- [fatih/vim-go][vim-go] -
-  A comprehensive Go development plugin for Vim.
-- [rhysd/vim-go-impl][vim-go-impl] -
-  Wraps the `impl` command in Vim, and also needs manual input for arguments.
+- [edolphin-ydf/goimpl.nvim][goimpl.nvim] -- original inspiration. Telescope-based, partial generic support.
+- [olexsmir/gopher.nvim][gopher.nvim] -- manual argument input, no generic interface support.
+- [fatih/vim-go][vim-go] -- full-featured Go development plugin for Vim.
+- [rhysd/vim-go-impl][vim-go-impl] -- thin `impl` wrapper requiring manual input.
 
-## 🪪 License
+## 📄 License
 
 MIT
 
 <!-- LINKS -->
 
 [impl]: https://github.com/josharian/impl
+[nui-url]: https://github.com/MunifTanjim/nui.nvim
 [sample-video]: https://github.com/user-attachments/assets/0f03a4f0-536c-42c1-a436-ada1775439ed
 [LazyVim]: https://www.lazyvim.org/
 [snacks-url]: https://github.com/folke/snacks.nvim
