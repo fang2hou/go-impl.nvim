@@ -46,7 +46,7 @@ function M.open()
 		if config.options.picker then
 			interface_data = ui.try_get_interface(config.options.picker, co, bufnr, gopls)
 		else
-			for _, finder in ipairs({ "snacks", "fzf_lua" }) do
+			for _, finder in ipairs({ "snacks", "fzf_lua", "telescope" }) do
 				interface_data = ui.try_get_interface(finder, co, bufnr, gopls)
 				if interface_data then
 					break

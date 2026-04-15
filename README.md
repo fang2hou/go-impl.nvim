@@ -34,6 +34,7 @@
 - Fuzzy Finder (choose one of the following)
   - [folke/snacks.nvim][snacks-url] (recommended, bundled with [LazyVim][LazyVim])
   - [ibhagwan/fzf-lua][fzf-lua-url]
+  - [nvim-telescope/telescope.nvim][telescope-url]
 
 ## 🚚 Installation
 
@@ -50,6 +51,7 @@
     -- Choose one of the following fuzzy finder
     "folke/snacks.nvim",
     "ibhagwan/fzf-lua",
+    "nvim-telescope/telescope.nvim",
   },
   opts = {},
   keys = {
@@ -102,6 +104,7 @@ MIT
 [LazyVim]: https://www.lazyvim.org/
 [snacks-url]: https://github.com/folke/snacks.nvim
 [fzf-lua-url]: https://github.com/ibhagwan/fzf-lua
+[telescope-url]: https://github.com/nvim-telescope/telescope.nvim
 [goimpl.nvim]: https://github.com/edolphin-ydf/goimpl.nvim
 [gopher.nvim]: https://github.com/olexsmir/gopher.nvim
 [vim-go]: https://github.com/fatih/vim-go

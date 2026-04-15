@@ -17,6 +17,7 @@ local M = {}
 local fuzzy_finders = {
 	fzf_lua = require("go-impl.fzf_lua"),
 	snacks = require("go-impl.snacks"),
+	telescope = require("go-impl.telescope"),
 }
 
 ---Get the receiver input
@@ -163,14 +164,14 @@ function M.get_generic_argument(opts, callback)
 end
 
 ---Try to get the interface from the given fuzzy finder
----@param finder "snacks" | "fzf_lua" The fuzzy finder to use
+---@param finder "snacks" | "fzf_lua" | "telescope" The fuzzy finder to use
 ---@param co thread The coroutine to resume
 ---@param bufnr integer The current buffer number
 ---@param gopls vim.lsp.Client The gopls client
 function M.try_get_interface(finder, co, bufnr, gopls)
 	if not finder or not fuzzy_finders[finder] then
 		vim.notify(
-			string.format("Invalid picker '%s', available: snacks, fzf_lua (nil for auto-detect)", finder),
+			string.format("Invalid picker '%s', available: snacks, fzf_lua, telescope (nil for auto-detect)", finder),
 			vim.log.levels.WARN,
 			{ title = "go-impl" }
 		)

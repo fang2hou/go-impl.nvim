@@ -2,10 +2,11 @@ local M = {}
 
 ---@class Config
 M.options = {
-	---@type nil|"snacks"|"fzf_lua"
-	---@usage nil - Use snacks if available, otherwise use fzf-lua
+	---@type nil|"snacks"|"fzf_lua"|"telescope"
+	---@usage nil - Use snacks if available, otherwise use fzf-lua, then telescope
 	---@usage "snacks" - Use folke/snacks picker
 	---@usage "fzf_lua" - Use ibhagwan/fzf-lua
+	---@usage "telescope" - Use nvim-telescope/telescope.nvim
 	picker = nil,
 	receiver = {
 		---Predict the abbreviation for the current struct
